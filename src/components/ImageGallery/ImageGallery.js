@@ -75,7 +75,7 @@ export default function ImageGallery({ searchImage }) {
               ></ImageGalleryItem>
             ))}
           </ul>
-          {total !== page * hits.length && <Button onClick={loadMore}></Button>}
+          {hits.length > 0  && hits.length < total  && <Button onClick={loadMore}></Button>}
           {showModal && (
             <Modal src={largeImageURL} onClose={closeModal}></Modal>
           )}{' '}
