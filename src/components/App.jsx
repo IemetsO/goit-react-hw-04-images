@@ -1,30 +1,19 @@
 import React from 'react';
 import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
-import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
+import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
+import { useState } from 'react';
 
-class App extends React.Component {
-  state = {
-    searchImage: "",
+export default function App() {
+  const [searchImage, setSearchImage] = useState('');
+
+  const handleFormSubmit = searchImage => {
+    setSearchImage(searchImage);
   };
-
-
-handleFormSubmit = searchImage => {
- this.setState({searchImage})
+  return (
+    <div className="App">
+      <Searchbar onSubmit={handleFormSubmit}></Searchbar>
+      <ImageGallery searchImage={searchImage}></ImageGallery>
+    </div>
+  );
 }
-
- 
-
-  render() {
-
-    return (
-      <div className="App">
-        <Searchbar onSubmit = {this.handleFormSubmit}></Searchbar>
-        <ImageGallery searchImage = {this.state.searchImage}></ImageGallery>
-        
-      </div>
-    );
-  }
-}
-
-export default App;

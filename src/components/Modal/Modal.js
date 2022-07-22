@@ -2,43 +2,41 @@ import React from 'react';
 import '../styles.css';
 import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
+import { useEffect } from 'react';
 
 const modalRoot = document.querySelector('#modal-root');
 
-class Modal extends React.Component {
-  componentDidMount() {
-    window.addEventListener('keydown', this.handleKeyDown);
-  }
 
-  componentWillUnmount() {
-    window.removeEventListener('keydown', this.handleKeyDown);
-  }
+export default function Modal({src, onClose}) {
+  useEffect(() => {
+    const handleKeydown = e => {
+      if (e.code === 'Escape') {
+        onClose();
+      }
+    };
 
-  handleKeyDown = e => {
-    if (e.code === 'Escape') {
-      this.props.onClose();
-    }
-  };
+    window.addEventListener('keydown', handleKeydown);
 
-  handleOverlay = e => {
+    return () => window.removeEventListener('keydown', handleKeydown);
+  }, [onClose]);
+   
+
+ const handleOverlay = e => {
     if (e.target === e.currentTarget) {
-      this.props.onClose();
-    }
-  };
+      onClose();
+    }}
 
-  render() {
     return createPortal(
-      <div className="Overlay" onClick={this.handleOverlay}>
+      <div className="Overlay" onClick={handleOverlay}>
         <div className="Modal">
-          <img src={this.props.src} alt="зображення" />
+          <img src={src} alt="зображення" />
         </div>
       </div>,
       modalRoot
     );
-  }
-}
+  };
 
-export default Modal;
+
 
 Modal.propTypes = {
   src: PropTypes.string.isRequired,

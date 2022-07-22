@@ -5,97 +5,91 @@ import Modal from 'components/Modal/Modal';
 import { Audio } from 'react-loader-spinner';
 import '../styles.css';
 import PropTypes from 'prop-types';
+import {useState, useEffect} from "react"
 
-class ImageGallery extends React.Component {
-  state = {
-    image: null,
-    hits: [],
-    error: null,
-    status: 'idle',
-    page: 1,
-    showModal: false,
-    largeImageURL: null,
-    total: 0
-    
-  };
 
-  componentDidUpdate(prevProps, prevState) {
-    if (prevProps.searchImage !== this.props.searchImage) {
-      this.setState({ page: 1, hits: [], total: 0});
+export default function ImageGallery({searchImage}) {
+  const [hits, setHits] = useState([]);
+  const [error, setError] = useState(null);
+  const [status, setStatus] = useState("idle");
+  const [page, setPage] = useState(1);
+  const [showModal, setShowModal] = useState(false);
+  const [largeImageURL, setLargeImageURL]= useState(null);
+  const [total, setTotal] = useState(0);
+
+  useEffect(()=>{ 
+    setPage(1);
+    setHits([]);
+    setTotal(0);
+  }, [searchImage])
+
+  useEffect(() =>{
+    if (searchImage === ""){
+      return
     }
-    if (
-      prevProps.searchImage !== this.props.searchImage ||
-      prevState.page !== this.state.page
-    ) {
-      this.setState({ status: 'pending' });
-      fetch(
-        `https://pixabay.com/api/?key=26992012-e6a459b4fdd9a0e95b25f973a&q=${this.props.searchImage}&per_page=12&page=${this.state.page}`
-      )
-        .then(response => {
-          if (response.ok) {
-            return response.json();
-          }
-          return Promise.reject(new Error());
-        })
-        .then(image =>
-          this.setState(prevState => ({
-            image,
-            total: image.totalHits,
-            hits: [...prevState.hits, ...image.hits],
-            status: 'resolved',
-          }))
-        )
-        .catch(error => this.setState({ error, status: 'rejected' }));
-    }
-  }
-
-  loadMore = () => {
-    this.setState(prevState => ({ page: prevState.page + 1 }));
-  };
-
-  openModal = imageID => {
-    this.state.hits.forEach(e => {
-      if (e.id === imageID) {
-        this.setState({ largeImageURL: e.largeImageURL });
+    setStatus("pending");
+    fetch(
+    `https://pixabay.com/api/?key=26992012-e6a459b4fdd9a0e95b25f973a&q=${searchImage}&per_page=12&page=${page}`
+  )
+    .then(response => {
+      if (response.ok) {
+        return response.json();
       }
-    });
-    this.setState({ showModal: !this.state.showModal });
-  };
+      return Promise.reject(new Error());
+    })
+    .then(image =>{
+      setTotal(image.totalHits);
+      setHits(prevState =>[...prevState, ...image.hits]);
+      setStatus("resolved")})
+    .catch(error => {setError(error)
+    setStatus("rejected")});
+  }, [ page, searchImage] )
 
-  closeModal = () => {
-    this.setState({ showModal: !this.state.showModal });
-  };
 
-  render() {
-    const { hits, status, showModal, largeImageURL, total, page } = this.state;
+  const loadMore = () => {
+    setPage(prevState => prevState + 1)}
+  
 
-    return (
-      <div>
-        {hits.length !== 0 &&
-        <div>
-        <ul className="ImageGallery">
-          {hits.map(e => (
-            <ImageGalleryItem
-              key={e.id}
-              src={e.webformatURL}
-              onClick={() => this.openModal(e.id)}
-            ></ImageGalleryItem>
-          ))}
-        </ul>
-      { total !== page * hits.length && 
-        <Button onClick={this.loadMore}></Button>}
-        {showModal && (
-          <Modal src={largeImageURL} onClose={this.closeModal}></Modal>
-        )} </div>
+  const openModal = imageID => {
+      hits.forEach(e => {
+        if (e.id === imageID) {
+          setLargeImageURL(e.largeImageURL);
         }
-    {status === 'pending' &&  <Audio></Audio> }
-    {status === 'idle' &&  <div>Введіть назву зображення</div> }
-    {hits.length === 0 && status !== 'idle' && <div>немає зображень з такою назвою</div> }
-    </div>
-    )   
-}}
+      });
+      setShowModal(true);
+    };
 
-export default ImageGallery;
+   const closeModal = () => {
+    setShowModal(false)
+    };
+
+  return (
+    <div>
+      {hits.length !== 0 &&
+      <div>
+      <ul className="ImageGallery">
+        {hits.map(e => (
+          <ImageGalleryItem
+            key={e.id}
+            src={e.webformatURL}
+            onClick={() => openModal(e.id)}
+          ></ImageGalleryItem>
+        ))}
+      </ul>
+    { total !== page * hits.length && 
+      <Button onClick={loadMore}></Button>}
+      {showModal && (
+        <Modal src={largeImageURL} onClose={closeModal}></Modal>
+      )} </div>
+      }
+  {status === 'pending' &&  <Audio></Audio> }
+  {status === 'idle' &&  <div>Введіть назву зображення</div> }
+  {hits.length === 0 && status !== 'idle' && <div>немає зображень з такою назвою</div> }
+  </div>
+  )
+  }   
+
+
 
 ImageGallery.propTypes = {
   searchImage: PropTypes.string.isRequired,
